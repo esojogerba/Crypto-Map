@@ -3,6 +3,8 @@ import 'package:crypto_map/price_screen.dart';
 import 'package:crypto_map/trends_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:crypto_map/venues_screen.dart';
+import 'package:crypto_map/map_screen.dart';
 
 class NavBarScreen extends StatefulWidget {
   NavBarScreen({Key key}) : super(key: key);
@@ -11,12 +13,17 @@ class NavBarScreen extends StatefulWidget {
 }
 
 class _NavBarScreenState extends State<NavBarScreen> {
-  int currentIndex = 0;
+  int currentIndex = 2;
 
   PageController _pageController = PageController();
   //List of all the pages the NavBar will lead to. If new pages are added to the navbar
   //they must be added here too.
-  List<Widget> _screens = [PriceScreen(), TrendsScreen()];
+  List<Widget> _screens = [
+    PriceScreen(),
+    TrendsScreen(),
+    MapScreen(),
+    VScreen()
+  ];
 
   //currentIndex is set to the index of the current page when page is changed.
   void _onPageChanged(int index) {
@@ -85,6 +92,15 @@ class _NavBarScreenState extends State<NavBarScreen> {
             ),
             title: Text(
               'Map',
+              style: GoogleFonts.monda(),
+            ),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.apartment,
+            ),
+            title: Text(
+              'Venues',
               style: GoogleFonts.monda(),
             ),
           ),
