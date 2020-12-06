@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'dart:math';
+import 'package:crypto_map/bvenues.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 void main() => runApp(MapScreen());
@@ -15,43 +15,166 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   GoogleMapController _controller;
 
-  final CameraPosition _initialPosition =
-      CameraPosition(target: LatLng(60.1605345, 24.9390492));
+  List<Marker> allMarkers = [];
 
-  final List<Marker> markers = [];
+  PageController _pageController;
 
-  addMarker(cordinate) {
-    int id = Random().nextInt(100);
+  int prevPage;
 
-    setState(() {
-      markers
-          .add(Marker(position: cordinate, markerId: MarkerId(id.toString())));
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    bvenuesShops.forEach((element) {
+      allMarkers.add(Marker(
+          markerId: MarkerId(element.shopName),
+          draggable: false,
+          infoWindow:
+              InfoWindow(title: element.shopName, snippet: element.address),
+          position: element.locationCoords));
     });
+    _pageController = PageController(initialPage: 1, viewportFraction: 0.8)
+      ..addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_pageController.page.toInt() != prevPage) {
+      prevPage = _pageController.page.toInt();
+      moveCamera();
+    }
+  }
+
+  _coffeeShopList(index) {
+    return AnimatedBuilder(
+      animation: _pageController,
+      builder: (BuildContext context, Widget widget) {
+        double value = 1;
+        if (_pageController.position.haveDimensions) {
+          value = _pageController.page - index;
+          value = (1 - (value.abs() * 0.3) + 0.06).clamp(0.0, 1.0);
+        }
+        return Center(
+          child: SizedBox(
+            height: Curves.easeInOut.transform(value) * 125.0,
+            width: Curves.easeInOut.transform(value) * 350.0,
+            child: widget,
+          ),
+        );
+      },
+      child: InkWell(
+          onTap: () {
+            // moveCamera();
+          },
+          child: Stack(children: [
+            Center(
+                child: Container(
+                    margin: EdgeInsets.symmetric(
+                      horizontal: 10.0,
+                      vertical: 20.0,
+                    ),
+                    height: 125.0,
+                    width: 275.0,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black54,
+                            offset: Offset(0.0, 4.0),
+                            blurRadius: 10.0,
+                          ),
+                        ]),
+                    child: Container(
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10.0),
+                            color: Colors.white),
+                        child: Row(children: [
+                          Container(
+                              height: 90.0,
+                              width: 90.0,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.only(
+                                      bottomLeft: Radius.circular(10.0),
+                                      topLeft: Radius.circular(10.0)),
+                                  image: DecorationImage(
+                                      image: NetworkImage(
+                                          bvenuesShops[index].thumbNail),
+                                      fit: BoxFit.cover))),
+                          SizedBox(width: 5.0),
+                          Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  bvenuesShops[index].shopName,
+                                  style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  bvenuesShops[index].address,
+                                  style: TextStyle(
+                                      fontSize: 12.0,
+                                      fontWeight: FontWeight.w600),
+                                ),
+                                Container(
+                                  width: 170.0,
+                                  child: Text(
+                                    bvenuesShops[index].description,
+                                    style: TextStyle(
+                                        fontSize: 11.0,
+                                        fontWeight: FontWeight.w300),
+                                  ),
+                                )
+                              ])
+                        ]))))
+          ])),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GoogleMap(
-        initialCameraPosition: _initialPosition,
-        mapType: MapType.normal,
-        onMapCreated: (controller) {
-          setState(() {
-            _controller = controller;
-          });
-        },
-        markers: markers.toSet(),
-        onTap: (cordinate) {
-          _controller.animateCamera(CameraUpdate.newLatLng(cordinate));
-          addMarker(cordinate);
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _controller.animateCamera(CameraUpdate.zoomOut());
-        },
-        child: Icon(Icons.zoom_out),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+        body: Stack(
+      children: <Widget>[
+        Container(
+          height: MediaQuery.of(context).size.height - 50.0,
+          width: MediaQuery.of(context).size.width,
+          child: GoogleMap(
+            initialCameraPosition:
+                CameraPosition(target: LatLng(40.7128, -74.0060), zoom: 12.0),
+            markers: Set.from(allMarkers),
+            onMapCreated: mapCreated,
+          ),
+        ),
+        Positioned(
+          bottom: 20.0,
+          child: Container(
+            height: 200.0,
+            width: MediaQuery.of(context).size.width,
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: bvenuesShops.length,
+              itemBuilder: (BuildContext context, int index) {
+                return _coffeeShopList(index);
+              },
+            ),
+          ),
+        )
+      ],
+    ));
+  }
+
+  void mapCreated(controller) {
+    setState(() {
+      _controller = controller;
+    });
+  }
+
+  moveCamera() {
+    _controller.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+        target: bvenuesShops[_pageController.page.toInt()].locationCoords,
+        zoom: 14.0,
+        bearing: 45.0,
+        tilt: 45.0)));
   }
 }
