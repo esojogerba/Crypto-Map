@@ -2,7 +2,9 @@ import 'package:crypto_map/models/coin_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:crypto_map/models/crypto.dart';
 import 'dart:io' show Platform;
+import 'dart:async';
 
 class PriceScreen extends StatefulWidget {
   @override
@@ -11,20 +13,7 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   //AUD is selected as the currency by default.
-  String selectedCurrency = 'AUD';
-
-  var imageUrls = [
-    "https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=008",
-    "https://cryptologos.cc/logos/ethereum-eth-logo.png?v=008",
-    "https://cryptologos.cc/logos/litecoin-ltc-logo.png?v=008",
-    "https://cryptologos.cc/logos/xrp-xrp-logo.png?v=008",
-    "https://cryptologos.cc/logos/tether-usdt-logo.png?v=008",
-    "https://cryptologos.cc/logos/chainlink-link-logo.png?v=008",
-    "https://cryptologos.cc/logos/polkadot-new-dot-logo.png?v=008",
-    "https://cryptologos.cc/logos/cardano-ada-logo.png?v=008",
-    "https://cryptologos.cc/logos/binance-coin-bnb-logo.png?v=008",
-    "https://cryptologos.cc/logos/stellar-xlm-logo.png?v=008",
-  ];
+  String selectedCurrency = 'USD';
 
   //Builds android drop down menu for currency selection.
   //Retrieves currencies from currenciesList.
@@ -75,20 +64,21 @@ class _PriceScreenState extends State<PriceScreen> {
     );
   }
 
-  //Holds the current values of the cryptocurrencies.
-  Map<String, String> coinValues = {};
+  //Holds the cryptocurrency information.
+  var cryptos = new List<Crypto>();
   //Used to show wether the app is loading data atm.
   bool isWaiting = false;
 
   //Retrieves the current prices of the cryptocurrencies.
-  void getData() async {
+  Future<void> getData() async {
     isWaiting = true;
     //If no error occurs, passes the information into coinValues.
     try {
       var data = await CoinData().getCoinData(selectedCurrency);
+      print("loading");
       isWaiting = false;
       setState(() {
-        coinValues = data;
+        cryptos = data;
       });
       //If an error occurs, prints error code to terminal.
     } catch (e) {
@@ -99,24 +89,26 @@ class _PriceScreenState extends State<PriceScreen> {
   @override
   void initState() {
     super.initState();
-    getData();
+    this.getData();
   }
 
   //Creates a column with individual cards for each cryptocurrency.
   SingleChildScrollView makeCards() {
+    //List of cryptocards that contain the information for each crypto.
     List<CryptoCard> cryptoCards = [];
-    int i = 0;
-    for (String crypto in cryptoList) {
-      cryptoCards.add(
-        CryptoCard(
-          cryptoCurrency: crypto,
-          selectedCurrency: selectedCurrency,
-          value: isWaiting ? '?' : coinValues[crypto],
-          imageUrl: imageUrls[i],
-        ),
-      );
-      i++;
+    //Adds all of the information for each card.
+    //Info is retrieved from API.
+    for (int i = 0; i < cryptos.length; i++) {
+      cryptoCards.add(CryptoCard(
+        cryptoCurrency: cryptos[i].id.toString(),
+        selectedCurrency: selectedCurrency,
+        value: isWaiting ? '?' : cryptos[i].price.toString(),
+        imageUrl: cryptos[i].imageUrl.toString(),
+        dayChange: cryptos[i].dayChange.toString(),
+        dayTrend: cryptos[i].dayTrend.toString(),
+      ));
     }
+    //Returns the column containing the finished cards.
     return SingleChildScrollView(
         child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -128,43 +120,56 @@ class _PriceScreenState extends State<PriceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        //Makes screen scrollable.
         body: SingleChildScrollView(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          //Contains the drop down menu.
-          Container(
-              height: 40.0,
-              alignment: Alignment.center,
-              padding: EdgeInsets.all(2.0),
-              color: Color(0xFF00858A),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    height: 40.0,
-                    alignment: Alignment.center,
-                    padding: EdgeInsets.fromLTRB(0, 0, 20, 0),
-                    color: Color(0xFF00858A),
-                    child: Text(
-                      "Select Currency: ",
-                      style: GoogleFonts.monda(
-                        color: Color(0xFFFFFFFF),
+      child: Container(
+        decoration: BoxDecoration(
+            gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [const Color(0xFF144B4D), const Color(0xFF80A5A7)],
+        )),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            //Contains the drop down menu.
+            Container(
+                height: 40.0,
+                alignment: Alignment.center,
+                padding: EdgeInsets.all(2.0),
+                color: Color(0xFFCFD8DC),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      height: 40.0,
+                      alignment: Alignment.center,
+                      padding: EdgeInsets.fromLTRB(0, 0, 20, 0),
+                      color: Color(0xFFCFD8DC),
+                      child: Text(
+                        "Select Currency: ",
+                        style: GoogleFonts.monda(
+                          color: Color(0xFF263238),
+                        ),
                       ),
                     ),
-                  ),
-                  Container(
-                    height: 40.0,
-                    alignment: Alignment.center,
-                    color: Color(0xFF00858A),
-                    child: Platform.isIOS ? iOSPicker() : androidDropdown(),
-                  ),
-                ],
-              )),
-          //Creates the column with the cards.
-          makeCards(),
-        ],
+                    Container(
+                      height: 40.0,
+                      alignment: Alignment.center,
+                      color: Color(0xFFCFD8DC),
+                      child: Platform.isIOS ? iOSPicker() : androidDropdown(),
+                    ),
+                  ],
+                )),
+            //Creates the column with the cards.
+            makeCards(),
+            //Extra container for spacing at the bottom.
+            Container(
+              margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
+            )
+          ],
+        ),
       ),
     ));
   }
@@ -172,12 +177,13 @@ class _PriceScreenState extends State<PriceScreen> {
 
 //Class for the cards that are used to display cryptocurrency information.
 class CryptoCard extends StatelessWidget {
-  const CryptoCard({
-    this.imageUrl,
-    this.value,
-    this.selectedCurrency,
-    this.cryptoCurrency,
-  });
+  const CryptoCard(
+      {this.imageUrl,
+      this.value,
+      this.selectedCurrency,
+      this.cryptoCurrency,
+      this.dayChange,
+      this.dayTrend});
 
   //Class variables.
   //Used to hold information that is retrieved from the API.
@@ -185,6 +191,34 @@ class CryptoCard extends StatelessWidget {
   final String value;
   final String selectedCurrency;
   final String cryptoCurrency;
+  final String dayChange;
+  final String dayTrend;
+
+  //Returns a container with an icon for the corresponding trend type.
+  Container trendIcon() {
+    //If the trend = uptrend, color is set to green and uptrend icon is used.
+    if (dayTrend == "up") {
+      return Container(
+          alignment: Alignment.center,
+          margin: const EdgeInsets.fromLTRB(8.0, 4.0, 5.0, 4.0),
+          child: Icon(
+            Icons.trending_up,
+            color: Colors.green[300],
+            size: 20,
+          ));
+    }
+    //If the trend = downtrend, color is set to red and downtrend icon is used.
+    else {
+      return Container(
+          alignment: Alignment.center,
+          margin: const EdgeInsets.fromLTRB(8.0, 4.0, 5.0, 4.0),
+          child: Icon(
+            Icons.trending_down,
+            color: Colors.red[400],
+            size: 20,
+          ));
+    }
+  }
 
   //Builds the layout of the cards.
   @override
@@ -192,7 +226,7 @@ class CryptoCard extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
       child: Card(
-          color: Color(0xFF00858A),
+          color: Color(0xFFCFD8DC),
           elevation: 10.0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10.0),
@@ -201,42 +235,91 @@ class CryptoCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                  alignment: Alignment.center,
-                  width: 50.0,
-                  height: 50.0,
-                  decoration: new BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: new DecorationImage(
-                          fit: BoxFit.fill,
-                          image: new NetworkImage(imageUrl.toString())))),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  //Contains the logo of the cryptocurrency.
+                  Container(
+                    alignment: Alignment.center,
+                    margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                    width: 60.0,
+                    height: 60.0,
+                    decoration: BoxDecoration(
+                      color: Color(0xFFFFFFFF),
+                      borderRadius: BorderRadius.circular(60.0),
+                    ),
+                  ),
+                  //Contains the logo of the cryptocurrency.
+                  Container(
+                      alignment: Alignment.center,
+                      margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                      width: 50.0,
+                      height: 50.0,
+                      decoration: new BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: new DecorationImage(
+                              fit: BoxFit.fill,
+                              image: NetworkImage(imageUrl.toString())))),
+                ],
+              ),
+              //Contains the current price information, and the current trend.
               Column(
                 children: [
                   Container(
                     alignment: Alignment.center,
-                    padding: const EdgeInsets.all(2.0),
+                    margin: const EdgeInsets.all(2.0),
                     child: Text(
                       "Current Price: ",
                       textAlign: TextAlign.center,
                       style: GoogleFonts.monda(
-                        color: Color(0xFFFFFFFF),
+                        color: Color(0xFF263238),
                         fontSize: 18,
                       ),
                     ),
                   ),
                   Container(
                     alignment: Alignment.center,
-                    padding:
-                        EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
+                    margin: const EdgeInsets.all(2.0),
                     child: Text(
                       '1 $cryptoCurrency = $value $selectedCurrency',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.monda(
-                        color: Color(0xFFFFFFFF),
-                        fontSize: 16,
+                        color: Color(0xFF263238),
+                        fontSize: value.length > 10 ? 14 : 16,
                       ),
                     ),
                   ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Color(0xFF263238),
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    margin: EdgeInsets.fromLTRB(0, 2, 0, 8),
+                    child: Row(
+                      children: [
+                        //Retrieves the corresponding icon.
+                        trendIcon(),
+                        //Displays change percentage.
+                        //If trend = uptrend text color is set to green.
+                        //If trend = downtrend text color is set to red.
+                        Container(
+                          alignment: Alignment.center,
+                          margin: const EdgeInsets.fromLTRB(5.0, 4.0, 8.0, 4.0),
+                          child: Text(
+                            dayChange + "%",
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.monda(
+                              fontWeight: FontWeight.bold,
+                              color: dayTrend == "up"
+                                  ? Colors.green[300]
+                                  : Colors.red[400],
+                              fontSize: value.length > 10 ? 14 : 16,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
                 ],
               )
             ],

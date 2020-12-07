@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -104,26 +105,104 @@ class _VScreenState extends State<VScreen> {
         ),
       ),
       home: Scaffold(
-        body: Center(
-          child: FutureBuilder<Venues>(
-            future: futureVenues,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return ListView.separated(
-                  itemBuilder: (_, index) {
-                    return Text(snapshot.data.venues[index].name);
-                  },
-                  separatorBuilder: (_, __) => Divider(),
-                  itemCount: snapshot.data.venues.length,
-                  addAutomaticKeepAlives: false,
-                );
-              } else if (snapshot.hasError) {
-                return Text("${snapshot.error}");
-              }
+        body: Container(
+          decoration: BoxDecoration(
+              gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [const Color(0xFF144B4D), const Color(0xFF80A5A7)],
+          )),
+          child: Center(
+            child: FutureBuilder<Venues>(
+              future: futureVenues,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return ListView.separated(
+                    itemBuilder: (_, index) {
+                      return //Text(snapshot.data.venues[index].name);
+                          Padding(
+                              padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
+                              child: Card(
+                                  color: Color(0xFFCFD8DC),
+                                  elevation: 10.0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        alignment: Alignment.center,
+                                        margin: const EdgeInsets.fromLTRB(
+                                            0, 10, 0, 0),
+                                        child: Text(
+                                          snapshot.data.venues[index].name,
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.monda(
+                                              color: Color(0xFF263238),
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                      Container(
+                                        alignment: Alignment.centerLeft,
+                                        margin: const EdgeInsets.fromLTRB(
+                                            10.0, 5.0, 0, 0),
+                                        child: Text(
+                                          "Category: " +
+                                              snapshot
+                                                  .data.venues[index].category,
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.monda(
+                                            color: Color(0xFF263238),
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        alignment: Alignment.centerLeft,
+                                        margin: const EdgeInsets.fromLTRB(
+                                            10, 5.0, 0, 0),
+                                        child: Text(
+                                          "Latitude: " +
+                                              snapshot.data.venues[index].lat
+                                                  .toString(),
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.monda(
+                                            color: Color(0xFF263238),
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        alignment: Alignment.centerLeft,
+                                        margin: const EdgeInsets.fromLTRB(
+                                            10, 0, 0, 10),
+                                        child: Text(
+                                          "Longitude: " +
+                                              snapshot.data.venues[index].lon
+                                                  .toString(),
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.monda(
+                                            color: Color(0xFF263238),
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  )));
+                    },
+                    separatorBuilder: (_, __) => Divider(),
+                    itemCount: snapshot.data.venues.length,
+                    addAutomaticKeepAlives: false,
+                  );
+                } else if (snapshot.hasError) {
+                  return Text("${snapshot.error}");
+                }
 
-              // By default, show a loading spinner.
-              return CircularProgressIndicator();
-            },
+                // By default, show a loading spinner.
+                return CircularProgressIndicator();
+              },
+            ),
           ),
         ),
       ),

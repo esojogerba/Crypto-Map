@@ -97,7 +97,7 @@ class _NavBarScreenState extends State<NavBarScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.apartment,
+              Icons.list,
             ),
             title: Text(
               'Venues',
