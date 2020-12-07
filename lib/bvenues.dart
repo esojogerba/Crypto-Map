@@ -34,7 +34,7 @@ final List<Bvenues> bvenuesShops = [
       shopName: 'REEDS Jewelers',
       address: 'xpressway 77 North Frontage',
       description: 'Jewelers',
-      locationCoords: LatLng(40.730148, -73.999639),
+      locationCoords: LatLng(27.7120005, -97.3739824),
       thumbNail:
           'https://s27389.pcdn.co/wp-content/uploads/2020/06/bitcoin-cryptocurrencies-perfect-hedge-covid-19-crisis.jpeg'),
   Bvenues(

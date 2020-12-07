@@ -23,7 +23,6 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     bvenuesShops.forEach((element) {
       allMarkers.add(Marker(
@@ -62,9 +61,7 @@ class _MapScreenState extends State<MapScreen> {
         );
       },
       child: InkWell(
-          onTap: () {
-            // moveCamera();
-          },
+          onTap: () {},
           child: Stack(children: [
             Center(
                 child: Container(
